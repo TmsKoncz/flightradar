@@ -268,18 +268,15 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, zoom }) => {
         // https://www.iconfinder.com/icons/7217410/aircraft_transport_plane_transportation_airplane_travel_icon.
         // I used Adobe Photoshop to fill the icon with a solid color (white).
 
-        map.current?.loadImage(aircraftIconStandard, (error, image) => {
-          if (error) throw error;
-
-          if (image && !map.current?.hasImage('aircraft-icon')) {
-            map.current?.addImage('aircraft-icon', image);
+        map.current?.loadImage(aircraftIconStandard).then((response) => {
+          if (response && !map.current?.hasImage('aircraft-icon')) {
+            map.current?.addImage('aircraft-icon', response.data);
           }
         });
 
-        map.current!.loadImage(aircraftIconSelected, (error, image) => {
-          if (error) throw error;
-          if (!map.current!.hasImage('aircraft-icon-selected')) {
-            map.current!.addImage('aircraft-icon-selected', image!);
+        map.current!.loadImage(aircraftIconSelected).then((response) => {
+          if (response && !map.current!.hasImage('aircraft-icon-selected')) {
+            map.current!.addImage('aircraft-icon-selected', response.data);
           }
         });
 
