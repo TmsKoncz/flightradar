@@ -134,7 +134,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, zoom }) => {
     if (map.current) return; // Initialize the map only once.
     map.current = new maplibregl.Map({
       container: mapContainer.current!,
-      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', // Ingyenes sötét térkép stílus
+      style: 'https://tiles.openfreemap.org/styles/dark', // Ingyenes sötét térkép stílus
       // center: [lng, lat],
       center: center,
       // zoom: mapZoom
@@ -277,7 +277,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, zoom }) => {
           filter: ['has', 'point_count'],
           layout: {
             'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            'text-font': ['Noto Sans Bold'],
             'text-size': 12
           }
         });
