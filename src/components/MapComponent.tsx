@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl'; // npm install --save react-map-gl mapbox-gl @types/mapbox-gl
-import 'mapbox-gl/dist/mapbox-gl.css'; // The base map library requires its stylesheet be included at all times.
+import maplibregl from 'maplibre-gl'; // Ingyenes alternatíva a Mapbox GL-hez
+import 'maplibre-gl/dist/maplibre-gl.css';
 import axios from 'axios'; // npm install axios | Axios is a simple promise based HTTP client for the browser and node.js.
 import aircraftIconStandard from '../assets/standard-white-plane-icon-map.png';
 import aircraftIconSelected from '../assets/standard-blue-plane-icon-map.png';
@@ -10,7 +10,6 @@ import DetailedPopupComponent from './DetailedPopupComponent';
 import './styles/MapComponent.css';
 
 interface MapComponentProps {
-  accessToken: string;
   center: [number, number];
   zoom: number;
 };
@@ -29,13 +28,13 @@ interface Aircraft {
   squawk: string;
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ center, zoom }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<maplibregl.Map | null>(null);
   const [lng, setLng] = useState(center[0]);
   const [lat, setLat] = useState(center[1]);
   const [mapZoom, setMapZoom] = useState(zoom);
-  const [bounds, setBounds] = useState<mapboxgl.LngLatBounds | null>(null); // The bounding box coordinates will be required when fetching our API.
+  const [bounds, setBounds] = useState<maplibregl.LngLatBounds | null>(null); // The bounding box coordinates will be required when fetching our API.
   // Read API documentation at https://github.com/thomasmercuriot/node-flight-radar.
   const [aircrafts, setAircrafts] = useState<Aircraft[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -43,7 +42,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
   const [showDetailedPopup, setShowDetailedPopup] = useState<boolean>(false);
   const [selectedFlightData, setSelectedFlightData] = useState<AdditionalFlightData | null>(null);
   const [selectedFlightPhotoData, setSelectedFlightPhotoData] = useState<AircraftPhoto | null>(null);
-  const selectedMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const selectedMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   const handleAircraftClick = (aircraft: Aircraft) => {
     setSelectedFlight(aircraft);
@@ -65,7 +64,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
     console.log("showDetailedPopup has changed:", showDetailedPopup);
   }, [showDetailedPopup]);
 
-  const fetchAircrafts = useCallback(async (boundingBox: mapboxgl.LngLatBounds | null) => {
+  const fetchAircrafts = useCallback(async (boundingBox: maplibregl.LngLatBounds | null) => {
     try {
       if (!boundingBox) return;
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api`, {
@@ -113,10 +112,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
 
   useEffect(() => {
     if (map.current) return; // Initialize the map only once.
-    mapboxgl.accessToken = accessToken;
-    map.current = new mapboxgl.Map({
+    map.current = new maplibregl.Map({
       container: mapContainer.current!,
-      style: 'mapbox://styles/thomasmercuriot/cm0mjab8c00bi01pj0oqm0v78', // Create your own style at https://studio.mapbox.com/.
+      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', // Ingyenes sötét térkép stílus
       // center: [lng, lat],
       center: center,
       // zoom: mapZoom
@@ -167,7 +165,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
               window.alert(marker.properties.message);
             });
 
-            new mapboxgl.Marker(el)
+            new maplibregl.Marker({element: el})
               .setLngLat(marker.geometry.coordinates as [number, number])
               .addTo(map.current!);
           }
@@ -308,14 +306,14 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
           const clusterId = features[0].properties?.cluster_id;
           if (!clusterId) return;
 
-          const source = map.current!.getSource('aircrafts') as mapboxgl.GeoJSONSource;
+          const source = map.current!.getSource('aircrafts') as maplibregl.GeoJSONSource;
           source.getClusterExpansionZoom(clusterId, (err: any, zoom: number | undefined | null) => {
             if (err || zoom === undefined || zoom === null) return;
 
             const coordinates = (features[0].geometry as GeoJSON.Point).coordinates;
             if (coordinates.length === 2) {
               map.current!.easeTo({
-                center: [coordinates[0], coordinates[1]] as mapboxgl.LngLatLike,
+                center: [coordinates[0], coordinates[1]] as maplibregl.LngLatLike,
                 zoom: zoom
               });
             }
@@ -337,7 +335,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
 
           if (coordinates.length === 2) {
             map.current!.easeTo({
-              center: [coordinates[0], coordinates[1]] as mapboxgl.LngLatLike,
+              center: [coordinates[0], coordinates[1]] as maplibregl.LngLatLike,
               // zoom: zoom (optional, I decided to keep the current zoom level).
             });
           }
@@ -397,7 +395,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
         setBounds(map.current.getBounds());
       }
     });
-  }, [accessToken, lng, lat, mapZoom, aircrafts, zoom, center]);
+  }, [lng, lat, mapZoom, aircrafts, zoom, center]);
 
   useEffect(() => {
     const getData = setTimeout(() => { // Fetch aircrafts 2 seconds after the user stops moving the map. This will prevent too many API calls.
@@ -413,7 +411,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
     if (!map.current) return;
 
     if (map.current.getSource('aircrafts')) {
-      (map.current.getSource('aircrafts') as mapboxgl.GeoJSONSource).setData(
+      (map.current.getSource('aircrafts') as maplibregl.GeoJSONSource).setData(
         convertToGeoJSON(aircrafts)
       );
     }
@@ -422,7 +420,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (map.current && map.current.getSource('aircrafts')) {
-        (map.current.getSource('aircrafts') as mapboxgl.GeoJSONSource).setData(
+        (map.current.getSource('aircrafts') as maplibregl.GeoJSONSource).setData(
           convertToGeoJSON(aircrafts)
         );
       }
@@ -451,9 +449,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ accessToken, center, zoom }
       el.style.height = '26px';
       el.style.backgroundSize = '100%';
 
-      selectedMarkerRef.current = new mapboxgl.Marker(el)
+      selectedMarkerRef.current = new maplibregl.Marker({element: el, rotation: selectedFlight.true_track})
         .setLngLat([selectedFlight.longitude, selectedFlight.latitude])
-        .setRotation(selectedFlight.true_track)
         .addTo(map.current);
     } else if (!selectedFlight && selectedMarkerRef.current) {
       selectedMarkerRef.current.remove();

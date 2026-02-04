@@ -87,8 +87,8 @@
   }
 }
 
-.mapboxgl-ctrl {
-  display: none !important; /* Sorry Mapbox (Personal use only) */
+.maplibregl-ctrl {
+  display: none !important;
   z-index: -1000 !important;
 }
 
