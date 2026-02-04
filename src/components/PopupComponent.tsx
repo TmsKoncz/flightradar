@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './styles/PopupComponent.css';
-import axios from 'axios'; // npm install axios | Axios is a simple promise based HTTP client for the browser and node.js.
 import aircraftIconFlight from '../assets/standard-white-plane-icon-popup.png'
 
 // Read API documentation at https://github.com/thomasmercuriot/node-flight-radar.
@@ -116,7 +115,6 @@ export interface AircraftPhoto { // Aircraft photo information.
 const PopupComponent: React.FC<PopupComponentProps> = ({ flight, onClose, onShowDetailed, hidden, setSelectedFlightData, setSelectedFlightPhotoData }) => {
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [additionalFlightData, setAdditionalFlightData] = useState<AdditionalFlightData | null>(null);
   const [aircraftPhoto, setAircraftPhoto] = useState<AircraftPhoto | null>(null);
   const [isClosing, setIsClosing] = useState<boolean>(false);
