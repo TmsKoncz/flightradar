@@ -222,7 +222,6 @@ const PopupComponent: React.FC<PopupComponentProps> = ({ flight, onClose, onShow
         </div>
         <div className="flight-info-popup-header-right">
         {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
         {aircraftPhoto && (
           <div className="image-container">
             <img src={aircraftPhoto.photo.photoUrl} alt="Aircraft" id='aircraft-photo' />
