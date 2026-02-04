@@ -295,7 +295,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, zoom }) => {
           },
         });
 
-        map.current.on('click', 'clusters', (e) => { // When the user clicks on a cluster, the map will zoom in to the cluster and center it.
+        map.current.on('click', 'clusters', async (e) => { // When the user clicks on a cluster, the map will zoom in to the cluster and center it.
           const features = map.current!.queryRenderedFeatures(e.point, {
             layers: ['clusters']
           });
@@ -304,9 +304,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, zoom }) => {
           if (!clusterId) return;
 
           const source = map.current!.getSource('aircrafts') as maplibregl.GeoJSONSource;
-          source.getClusterExpansionZoom(clusterId, (err: any, zoom: number | undefined | null) => {
-            if (err || zoom === undefined || zoom === null) return;
-
+          try {
+            const zoom = await source.getClusterExpansionZoom(clusterId);
             const coordinates = (features[0].geometry as GeoJSON.Point).coordinates;
             if (coordinates.length === 2) {
               map.current!.easeTo({
@@ -314,7 +313,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, zoom }) => {
                 zoom: zoom
               });
             }
-          })
+          } catch (err) {
+            console.error('Error getting cluster expansion zoom:', err);
+          }
         })
 
         map.current.on('click', 'unclustered-point', (e) => { // When the user clicks on an individual aircraft, it will center the map on the aircraft.
