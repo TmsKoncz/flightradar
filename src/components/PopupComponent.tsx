@@ -134,13 +134,24 @@ const PopupComponent: React.FC<PopupComponentProps> = ({ flight, onClose, onShow
 
       setIsPrevious(flight?.icao24 || '')
 
+      // Az eredeti API backend nem elérhető, így az additional data fetch ki van kapcsolva.
+      // Ha saját backend-et futtatsz (https://github.com/thomasmercuriot/node-flight-radar),
+      // állítsd be a REACT_APP_API_URL környezeti változót és kommenteld ki az alábbi kódot.
+      
+      setLoading(false);
+      setAdditionalFlightData(null);
+      setAircraftPhoto(null);
+      setSelectedFlightData(null);
+      setSelectedFlightPhotoData(null);
+
+      /*
       const fetchRegistration = async (icao24: string) => {
         try {
           setLoading(true);
           setError(null);
 
           const registrationResponse = await axios.get<{ registration: string }>(`${process.env.REACT_APP_API_URL}/api/registration/${icao24}`);
-          const registration = registrationResponse.data.registration; // See API documentation for the expected response (https://github.com/thomasmercuriot/node-flight-radar).
+          const registration = registrationResponse.data.registration;
 
           const additionalFlightDataResponse = await axios.get<AdditionalFlightData>(`${process.env.REACT_APP_API_URL}/api/aircraft/${registration}`);
           setAdditionalFlightData(additionalFlightDataResponse.data);
@@ -162,6 +173,7 @@ const PopupComponent: React.FC<PopupComponentProps> = ({ flight, onClose, onShow
       };
 
       fetchRegistration(flight.icao24);
+      */
     };
   }, [flight, setSelectedFlightData, setSelectedFlightPhotoData, isPrevious]);
 
