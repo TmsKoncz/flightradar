@@ -67,15 +67,35 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, zoom }) => {
   const fetchAircrafts = useCallback(async (boundingBox: maplibregl.LngLatBounds | null) => {
     try {
       if (!boundingBox) return;
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api`, {
+      // OpenSky Network API - ingyenes, nincs szükség backend-re
+      // Dokumentáció: https://opensky-network.org/apidoc/rest.html
+      const response = await axios.get('https://opensky-network.org/api/states/all', {
         params: {
           lamin: boundingBox.getSouthWest().lat,
           lomin: boundingBox.getSouthWest().lng,
           lamax: boundingBox.getNorthEast().lat,
-          lomax: boundingBox.getNorthEast().lng, // '/api?lamin=XXX&lomin=XXX&lamax=XXX&lomax=XXX'
+          lomax: boundingBox.getNorthEast().lng,
         },
       });
-      setAircrafts(response.data); // See API documentation for the expected response (https://github.com/thomasmercuriot/node-flight-radar).
+      
+      // OpenSky API válasz átalakítása a saját Aircraft formátumra
+      if (response.data && response.data.states) {
+        const transformedAircrafts: Aircraft[] = response.data.states.map((state: any[]) => ({
+          icao24: state[0] || '',
+          callsign: state[1]?.trim() || '',
+          last_contact: state[4] || 0,
+          longitude: state[5] || 0,
+          latitude: state[6] || 0,
+          baro_altitude: state[7] || 0,
+          velocity: state[9] || 0,
+          true_track: state[10] || 0,
+          vertical_rate: state[11] || 0,
+          geo_altitude: state[13] || 0,
+          squawk: state[14] || '',
+        })).filter((aircraft: Aircraft) => aircraft.longitude && aircraft.latitude);
+        
+        setAircrafts(transformedAircrafts);
+      }
     } catch (error) {
       console.log('Error fetching aircrafts:', error);
     }
